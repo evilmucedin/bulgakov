@@ -109,7 +109,7 @@ def build_model(dataset, vocabulary, m_path, batch_size, use_existing_model, rec
         updates=updates
     )
 
-    return model, train_model, vocab, voc, cost
+    return model, train_model, vocab, voc, cost, n_train_batches
 
 
 def train(dataset, vocabulary, b_path, rec_model='gru',
@@ -119,7 +119,7 @@ def train(dataset, vocabulary, b_path, rec_model='gru',
     print('train(..)')
     m_path = b_path + rec_model + '-best_model_' + \
         str(batch_size) + "-" + id + '.pkl'
-    model, train_model, vocab, voc, _ = build_model(
+    model, train_model, vocab, voc, _, n_train_batches = build_model(
         dataset, vocabulary, m_path, batch_size, use_existing_model, rec_model, n_h, optimizer, learning_rate)
 
     ###############
@@ -190,7 +190,7 @@ def trainAll():
 
 def predict(model, txt):
     data, vocabulary = read_char_data(txt, seq_length=SEQ_LENGTH)
-    model, _, vocab, voc, cost = build_model(
+    model, _, vocab, voc, cost, _ = build_model(
         dataset, vocabulary, model, batch_size, use_existing_model, REC_MODEL, N_H, OPTIMIZER, LEARNING_RATE)
     cost = 0.
     for i in range(n_train_batches):
