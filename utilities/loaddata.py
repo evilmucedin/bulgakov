@@ -3,7 +3,7 @@ import theano
 
 from utilities.textreader import get_one_hot, get_one_hot_vocab_list
 
-__author__ = 'uyaseen'
+__author__ = 'evilmucedin'
 
 
 def load_data(data, vocab, vocab_encoded, one_hot=True):

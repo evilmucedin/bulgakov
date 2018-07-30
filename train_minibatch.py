@@ -151,6 +151,6 @@ if __name__ == '__main__':
     data, vocabulary = read_char_data(
         'data/Zolotoi Tielienok - Ievghienii Pietrovich Pietrov.txt', seq_length=100)
     train(data, vocabulary, b_path='data/models/', rec_model='gru',
-          n_h=100, optimizer='rmsprop', use_existing_model=True,
+          n_h=256, optimizer='rmsprop', use_existing_model=True,
           n_epochs=600, batch_size=1000)
     print('... done')
