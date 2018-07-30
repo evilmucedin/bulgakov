@@ -3,7 +3,7 @@ import theano.tensor as T
 
 from utilities.initializations import get
 
-__author__ = 'uyaseen'
+__author__ = 'evilmucedin'
 
 
 class Gru(object):
