@@ -109,7 +109,7 @@ def build_model(dataset, vocabulary, m_path, batch_size, use_existing_model, rec
         updates=updates
     )
 
-    return model, train_model, vocab, voc, cost, n_train_batches
+    return model, train_model, vocabulary, voc, cost, n_train_batches
 
 
 def train(dataset, vocabulary, b_path, rec_model='gru',
@@ -119,8 +119,9 @@ def train(dataset, vocabulary, b_path, rec_model='gru',
     print('train(..)')
     m_path = b_path + rec_model + '-best_model_' + \
         str(batch_size) + "-" + id + '.pkl'
-    model, train_model, vocab, voc, _, n_train_batches = build_model(
+    model, train_model, vocabulary, voc, _, n_train_batches = build_model(
         dataset, vocabulary, m_path, batch_size, use_existing_model, rec_model, n_h, optimizer, learning_rate)
+    vocab, ix_to_words, words_to_ix = vocabulary
 
     ###############
     # TRAIN MODEL #
@@ -146,7 +147,7 @@ def train(dataset, vocabulary, b_path, rec_model='gru',
             if train_cost < best_train_error:
                 best_train_error = train_cost
                 with open(m_path, 'wb') as f:
-                    pkl.dump((model.params, vocab, voc),
+                    pkl.dump((model.params, vocabulary, voc),
                              f, pkl.HIGHEST_PROTOCOL)
 
             if i % logging_freq == 0:
@@ -189,9 +190,9 @@ def trainAll():
 
 
 def predict(model, txt):
-    data, vocabulary = read_char_data(txt, seq_length=SEQ_LENGTH)
-    model, _, vocab, voc, cost, _ = build_model(
+    model, _, vocabulary, voc, cost, _, _ = build_model(
         dataset, vocabulary, model, batch_size, use_existing_model, REC_MODEL, N_H, OPTIMIZER, LEARNING_RATE)
+    data, vocabulary = read_char_data(txt, seq_length=SEQ_LENGTH, vocabulary=vocabulary)
     cost = 0.
     for i in range(n_train_batches):
         cost += train_model(i)
