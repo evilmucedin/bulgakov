@@ -21,11 +21,23 @@ from utilities.textreader import read_word_data, read_char_data
 
 __author__ = 'evilmucedin'
 
+IDS = [
+"1001",
+"12",
+"aelita",
+"beg",
+"garin",
+"gvardiya",
+"master",
+"nerv",
+"staruha",
+"telenok",
+]
 
 def train(dataset, vocabulary, b_path, rec_model='gru',
           n_h=100, use_existing_model=False, optimizer='rmsprop',
           learning_rate=0.001, n_epochs=100, sample_length=200,
-          batch_size=30):
+          batch_size=30, id="none"):
     print('train(..)')
     vocab, ix_to_words, words_to_ix = vocabulary
     vocab_enc = [words_to_ix[wd] for wd in vocab]
@@ -43,7 +55,7 @@ def train(dataset, vocabulary, b_path, rec_model='gru',
     # dimension of embedding space, should be len(vocab) for one-hot-vector
     n_x = len(vocab)
     n_y = len(vocab)  # dimension of output classes
-    m_path = b_path + rec_model + '-best_model_' + str(batch_size) + '.pkl'
+    m_path = b_path + rec_model + '-best_model_' + str(batch_size) + "-" + id + '.pkl'
 
     rec_params = None
     if use_existing_model:
@@ -148,9 +160,10 @@ def train(dataset, vocabulary, b_path, rec_model='gru',
 
 
 if __name__ == '__main__':
-    data, vocabulary = read_char_data(
-        'data/Zolotoi Tielienok - Ievghienii Pietrovich Pietrov.txt', seq_length=100)
-    train(data, vocabulary, b_path='data/models/', rec_model='gru',
-          n_h=256, optimizer='rmsprop', use_existing_model=True,
-          n_epochs=600, batch_size=1000)
-    print('... done')
+    for id in IDS:
+        data, vocabulary = read_char_data(
+            "data/" + id + ".txt", seq_length=100)
+        train(data, vocabulary, b_path='data/models/', rec_model='gru',
+              n_h=256, optimizer='rmsprop', use_existing_model=True,
+              n_epochs=600, batch_size=1000, id=id)
+        print('... done')
