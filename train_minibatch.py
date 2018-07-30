@@ -155,14 +155,14 @@ def train(dataset, vocabulary, b_path, rec_model='gru',
     plt.xlabel('epochs')
     plt.ylabel('cross-entropy error')
     plt.plot(epochs, costs, color='red')
-    plt.savefig(b_path + rec_model + '-error-plot_ ' +
+    plt.savefig(b_path + rec_model + '-error-plot_ ' + id + "_" +
                 str(batch_size) + '.png')
     # plt.show()
     plt.close()
 
 
-def train():
-    for id in IDS:
+def trainAll():
+    for id in reversed(IDS):
         data, vocabulary = read_char_data(
             "data/" + id + ".txt", seq_length=100)
         train(data, vocabulary, b_path='data/models/', rec_model='gru',
@@ -175,9 +175,11 @@ def predict(model, txt):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description="Character-level LSTM model for texts")
-    parser.add_argument('mode', type=str, default="")
-    parser.add_argument('model', type=str, default="")
-    parser.add_argument('txt', type=str, default="")
+    parser.add_argument('-mode', type=str)
+    parser.add_argument('-model', type=str, default="")
+    parser.add_argument('-txt', type=str, default="")
     args = parser.parse_args()
     if args.mode == "predict":
         predict(args.model, args.txt)
+    elif args.mode == "train":
+        trainAll()
