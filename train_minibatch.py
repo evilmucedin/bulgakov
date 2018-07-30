@@ -38,9 +38,12 @@ IDS = [
 
 SEQ_LENGTH = 100
 BATCH_SIZE = 100
+REC_MODEL = 'gru'
+N_H = 256
+OPTIMIZER = 'rmsprop'
+LEARNING_RATE = 0.001
 
-
-def build_model(dataset, vocabulary, m_path, batch_size, use_existing_model):
+def build_model(dataset, vocabulary, m_path, batch_size, use_existing_model, rec_model, n_h, optimizer, learning_rate):
     vocab, ix_to_words, words_to_ix = vocabulary
     vocab_enc = [words_to_ix[wd] for wd in vocab]
     train_set_x, train_set_y, voc = load_data(dataset, vocab, vocab_enc)
@@ -111,13 +114,13 @@ def build_model(dataset, vocabulary, m_path, batch_size, use_existing_model):
 
 def train(dataset, vocabulary, b_path, rec_model='gru',
           n_h=100, use_existing_model=False, optimizer='rmsprop',
-          learning_rate=0.001, n_epochs=100, sample_length=SEQ_LENGTH,
+          learning_rate=LEARNING_RATE, n_epochs=100, sample_length=SEQ_LENGTH,
           batch_size=30, id="none"):
     print('train(..)')
     m_path = b_path + rec_model + '-best_model_' + \
         str(batch_size) + "-" + id + '.pkl'
     model, train_model, vocab, voc, _ = build_model(
-        dataset, vocabulary, m_path, batch_size, use_existing_model)
+        dataset, vocabulary, m_path, batch_size, use_existing_model, rec_model, n_h, optimizer, learning_rate)
 
     ###############
     # TRAIN MODEL #
@@ -179,8 +182,8 @@ def trainAll():
     for id in reversed(IDS):
         data, vocabulary = read_char_data(
             "data/" + id + ".txt", seq_length=SEQ_LENGTH)
-        train(data, vocabulary, b_path='data/models/', rec_model='gru',
-              n_h=256, optimizer='rmsprop', use_existing_model=True,
+        train(data, vocabulary, b_path='data/models/', rec_model=REC_MODEL,
+              n_h=N_H, optimizer='rmsprop', use_existing_model=True,
               n_epochs=600, batch_size=BATCH_SIZE, id=id)
         print('... done')
 
@@ -188,7 +191,7 @@ def trainAll():
 def predict(model, txt):
     data, vocabulary = read_char_data(txt, seq_length=SEQ_LENGTH)
     model, _, vocab, voc, cost = build_model(
-        dataset, vocabulary, model, batch_size, use_existing_model)
+        dataset, vocabulary, model, batch_size, use_existing_model, REC_MODEL, N_H, OPTIMIZER, LEARNING_RATE)
     cost = 0.
     for i in range(n_train_batches):
         cost += train_model(i)
