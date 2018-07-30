@@ -5,6 +5,8 @@ from utilities.textreader import get_one_hot, get_one_hot_vocab_list
 
 __author__ = 'evilmucedin'
 
+BORROW = True
+
 
 def load_data(data, vocab, vocab_encoded, one_hot=True):
     print('load_data(..)')
@@ -27,11 +29,11 @@ def load_data(data, vocab, vocab_encoded, one_hot=True):
             vocab_one_hot = get_one_hot_vocab_list(vocab_encoded, len(vocab))
 
         shared_x = theano.shared(np.asarray(data_x,
-                                            dtype=theano.config.floatX))
+                                            dtype=theano.config.floatX), borrow=BORROW)
         shared_y = theano.shared(np.asarray(data_y,
-                                            dtype=theano.config.floatX))
+                                            dtype=theano.config.floatX), borrow=BORROW)
         shared_v = theano.shared(np.asarray(vocab_one_hot,
-                                            dtype=theano.config.floatX))
+                                            dtype=theano.config.floatX), borrow=BORROW)
 
         return shared_x, shared_y, shared_v
 

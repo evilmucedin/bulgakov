@@ -24,23 +24,23 @@ from utilities.textreader import read_word_data, read_char_data
 __author__ = 'evilmucedin'
 
 IDS = [
-"1001",
-"12",
-"aelita",
-"beg",
-"garin",
-"gvardiya",
-"master",
-"nerv",
-"staruha",
-"telenok",
+    "1001",
+    "12",
+    "aelita",
+    "beg",
+    "garin",
+    "gvardiya",
+    "master",
+    "nerv",
+    "staruha",
+    "telenok",
 ]
 
-def train(dataset, vocabulary, b_path, rec_model='gru',
-          n_h=100, use_existing_model=False, optimizer='rmsprop',
-          learning_rate=0.001, n_epochs=100, sample_length=200,
-          batch_size=30, id="none"):
-    print('train(..)')
+SEQ_LENGTH = 100
+BATCH_SIZE = 100
+
+
+def build_model(dataset, vocabulary, m_path, batch_size, use_existing_model):
     vocab, ix_to_words, words_to_ix = vocabulary
     vocab_enc = [words_to_ix[wd] for wd in vocab]
     train_set_x, train_set_y, voc = load_data(dataset, vocab, vocab_enc)
@@ -57,7 +57,6 @@ def train(dataset, vocabulary, b_path, rec_model='gru',
     # dimension of embedding space, should be len(vocab) for one-hot-vector
     n_x = len(vocab)
     n_y = len(vocab)  # dimension of output classes
-    m_path = b_path + rec_model + '-best_model_' + str(batch_size) + "-" + id + '.pkl'
 
     rec_params = None
     if use_existing_model:
@@ -67,10 +66,10 @@ def train(dataset, vocabulary, b_path, rec_model='gru',
         else:
             if os.path.isfile(m_path):
                 with open(m_path, 'rb') as f:
-                    rec_params = pkl.load(f)
+                    rec_params, _, _ = pkl.load(f)
             else:
                 print(
-                    'Unable to load existing model %s , initializing model with random weights' % m_path)
+                    'Unable to load existing model %s, initializing model with random weights' % m_path)
 
     if rec_model == 'rnn':
         model = Rnn(input=x, input_dim=n_x, hidden_dim=n_h, output_dim=n_y,
@@ -106,6 +105,20 @@ def train(dataset, vocabulary, b_path, rec_model='gru',
         },
         updates=updates
     )
+
+    return model, train_model, vocab, voc, cost
+
+
+def train(dataset, vocabulary, b_path, rec_model='gru',
+          n_h=100, use_existing_model=False, optimizer='rmsprop',
+          learning_rate=0.001, n_epochs=100, sample_length=SEQ_LENGTH,
+          batch_size=30, id="none"):
+    print('train(..)')
+    m_path = b_path + rec_model + '-best_model_' + \
+        str(batch_size) + "-" + id + '.pkl'
+    model, train_model, vocab, voc, _ = build_model(
+        dataset, vocabulary, m_path, batch_size, use_existing_model)
+
     ###############
     # TRAIN MODEL #
     ###############
@@ -130,7 +143,8 @@ def train(dataset, vocabulary, b_path, rec_model='gru',
             if train_cost < best_train_error:
                 best_train_error = train_cost
                 with open(m_path, 'wb') as f:
-                    pkl.dump(model.params, f, pkl.HIGHEST_PROTOCOL)
+                    pkl.dump((model.params, vocab, voc),
+                             f, pkl.HIGHEST_PROTOCOL)
 
             if i % logging_freq == 0:
                 iter_end_time = timeit.default_timer()
@@ -164,17 +178,26 @@ def train(dataset, vocabulary, b_path, rec_model='gru',
 def trainAll():
     for id in reversed(IDS):
         data, vocabulary = read_char_data(
-            "data/" + id + ".txt", seq_length=100)
+            "data/" + id + ".txt", seq_length=SEQ_LENGTH)
         train(data, vocabulary, b_path='data/models/', rec_model='gru',
               n_h=256, optimizer='rmsprop', use_existing_model=True,
-              n_epochs=600, batch_size=1000, id=id)
+              n_epochs=600, batch_size=BATCH_SIZE, id=id)
         print('... done')
 
+
 def predict(model, txt):
-    pass
+    data, vocabulary = read_char_data(txt, seq_length=SEQ_LENGTH)
+    model, _, vocab, voc, cost = build_model(
+        dataset, vocabulary, model, batch_size, use_existing_model)
+    cost = 0.
+    for i in range(n_train_batches):
+        cost += train_model(i)
+    print('Cost: %f' % cost)
+
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description="Character-level LSTM model for texts")
+    parser = argparse.ArgumentParser(
+        description="Character-level LSTM model for texts")
     parser.add_argument('-mode', type=str)
     parser.add_argument('-model', type=str, default="")
     parser.add_argument('-txt', type=str, default="")
