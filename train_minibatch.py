@@ -19,7 +19,7 @@ from utilities.optimizers import get_optimizer
 from utilities.loaddata import load_data
 from utilities.textreader import read_word_data, read_char_data
 
-__author__ = 'uyaseen'
+__author__ = 'evilmucedin'
 
 
 def train(dataset, vocabulary, b_path, rec_model='gru',
@@ -30,7 +30,8 @@ def train(dataset, vocabulary, b_path, rec_model='gru',
     vocab, ix_to_words, words_to_ix = vocabulary
     vocab_enc = [words_to_ix[wd] for wd in vocab]
     train_set_x, train_set_y, voc = load_data(dataset, vocab, vocab_enc)
-    n_train_batches = int(train_set_x.get_value(borrow=True).shape[0] / batch_size)
+    n_train_batches = int(train_set_x.get_value(
+        borrow=True).shape[0] / batch_size)
 
     ######################
     # BUILD ACTUAL MODEL #
@@ -39,7 +40,8 @@ def train(dataset, vocabulary, b_path, rec_model='gru',
     x = T.ftensor3('x')
     y = T.ftensor3('y')
     print('... building the model')
-    n_x = len(vocab)  # dimension of embedding space, should be len(vocab) for one-hot-vector
+    # dimension of embedding space, should be len(vocab) for one-hot-vector
+    n_x = len(vocab)
     n_y = len(vocab)  # dimension of output classes
     m_path = b_path + rec_model + '-best_model_' + str(batch_size) + '.pkl'
 
@@ -53,7 +55,8 @@ def train(dataset, vocabulary, b_path, rec_model='gru',
                 with open(m_path, 'rb') as f:
                     rec_params = pkl.load(f)
             else:
-                print('Unable to load existing model %s , initializing model with random weights' % m_path)
+                print(
+                    'Unable to load existing model %s , initializing model with random weights' % m_path)
 
     if rec_model == 'rnn':
         model = Rnn(input=x, input_dim=n_x, hidden_dim=n_h, output_dim=n_y,
@@ -102,7 +105,7 @@ def train(dataset, vocabulary, b_path, rec_model='gru',
     best_train_error = np.inf
     start_time = timeit.default_timer()
     done_looping = False
-    while(epoch < n_epochs) and (not done_looping):
+    while (epoch < n_epochs) and (not done_looping):
         epoch += 1
         train_cost = 0.
         for i in range(n_train_batches):
@@ -118,13 +121,14 @@ def train(dataset, vocabulary, b_path, rec_model='gru',
             if i % logging_freq == 0:
                 iter_end_time = timeit.default_timer()
                 print('epoch: %i/%i, minibatch: %i/%i, cost: %0.8f, /sample: %.4fm' %
-                      (epoch, n_epochs, i, n_train_batches, train_cost/(i+1),
+                      (epoch, n_epochs, i, n_train_batches, train_cost / (i + 1),
                        (iter_end_time - iter_start_time) / 60.))
 
         # sample from the model now and then
         if epoch % sampling_freq == 0:
-            seed = randint(0, len(vocab)-1)
-            idxes = model.generative_sampling(seed, emb_data=voc, sample_length=sample_length)
+            seed = randint(0, len(vocab) - 1)
+            idxes = model.generative_sampling(
+                seed, emb_data=voc, sample_length=sample_length)
             sample = ''.join(ix_to_words[ix] for ix in idxes)
             print(sample)
 
@@ -137,14 +141,16 @@ def train(dataset, vocabulary, b_path, rec_model='gru',
     plt.xlabel('epochs')
     plt.ylabel('cross-entropy error')
     plt.plot(epochs, costs, color='red')
-    plt.savefig(b_path + rec_model + '-error-plot_ ' + str(batch_size) + '.png')
+    plt.savefig(b_path + rec_model + '-error-plot_ ' +
+                str(batch_size) + '.png')
     # plt.show()
     plt.close()
 
 
 if __name__ == '__main__':
-    data, vocabulary = read_char_data('data/input.txt', seq_length=50)
+    data, vocabulary = read_char_data(
+        'data/Zolotoi Tielienok - Ievghienii Pietrovich Pietrov.txt', seq_length=100)
     train(data, vocabulary, b_path='data/models/', rec_model='gru',
           n_h=100, optimizer='rmsprop', use_existing_model=True,
-          n_epochs=600, batch_size=30)
+          n_epochs=600, batch_size=1000)
     print('... done')

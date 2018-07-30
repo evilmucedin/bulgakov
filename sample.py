@@ -1,6 +1,8 @@
+#!/usr/bin/env python3
+
 import random
 
-import cPickle as pkl
+import pickle as pkl
 import os.path
 
 import theano.tensor as T
@@ -12,7 +14,7 @@ from model.lstm import Lstm
 from utilities.loaddata import load_data
 from utilities.textreader import read_word_data, read_char_data
 
-__author__ = 'uyaseen'
+__author__ = 'evilmucedin'
 
 
 def sample(dataset, vocabulary, m_path, n_h, rec_model, sample_count, sample_length):
@@ -56,6 +58,6 @@ def sample(dataset, vocabulary, m_path, n_h, rec_model, sample_count, sample_len
 
 
 if __name__ == '__main__':
-    data, vocabulary = read_char_data('data/input.txt', seq_length=50)
+    data, vocabulary = read_char_data('data/Zolotoi Tielienok - Ievghienii Pietrovich Pietrov.txt', seq_length=50)
     sample(data, vocabulary, m_path='data/models/gru-best_model.pkl', n_h=100,
            rec_model='gru', sample_count=10, sample_length=200)

@@ -2,7 +2,7 @@ import numpy as np
 import nltk
 import itertools
 
-__author__ = 'uyaseen'
+__author__ = 'evilmucedin'
 
 
 def tokenize(text):
@@ -11,16 +11,16 @@ def tokenize(text):
 
 
 def get_one_hot(idx, vocab_size):
-        arr = np.zeros(vocab_size)
-        arr[idx] = 1
-        return arr
+    arr = np.zeros(vocab_size)
+    arr[idx] = 1
+    return arr
 
 
 def get_one_hot_vocab_list(vocab, vocab_size):
-        l = []
-        for j in vocab:
-            l.append(get_one_hot(j, vocab_size))
-        return l
+    l = []
+    for j in vocab:
+        l.append(get_one_hot(j, vocab_size))
+    return l
 
 
 def read_word_data(f_name, seq_length):
