@@ -43,7 +43,7 @@ def train(dataset, vocabulary, b_path, rec_model='gru',
     vocab_enc = [words_to_ix[wd] for wd in vocab]
     train_set_x, train_set_y, voc = load_data(dataset, vocab, vocab_enc)
     n_train_batches = int(train_set_x.get_value(
-        borrow=True).shape[0] / batch_size)
+        borrow=True).shape[0] / batch_size) + 1
 
     ######################
     # BUILD ACTUAL MODEL #
