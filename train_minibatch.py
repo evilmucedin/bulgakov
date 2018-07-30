@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 
+import argparse
+
 from random import randint
 import numpy as np
 import matplotlib.pyplot as plt
@@ -159,7 +161,7 @@ def train(dataset, vocabulary, b_path, rec_model='gru',
     plt.close()
 
 
-if __name__ == '__main__':
+def train():
     for id in IDS:
         data, vocabulary = read_char_data(
             "data/" + id + ".txt", seq_length=100)
@@ -167,3 +169,15 @@ if __name__ == '__main__':
               n_h=256, optimizer='rmsprop', use_existing_model=True,
               n_epochs=600, batch_size=1000, id=id)
         print('... done')
+
+def predict(model, txt):
+    pass
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser(description="Character-level LSTM model for texts")
+    parser.add_argument('mode', type=str, default="")
+    parser.add_argument('model', type=str, default="")
+    parser.add_argument('txt', type=str, default="")
+    args = parser.parse_args()
+    if args.mode == "predict":
+        predict(args.model, args.txt)
