@@ -180,7 +180,7 @@ def train(dataset, vocabulary, b_path, rec_model='gru',
 
 
 def trainAll():
-    for id in reversed(IDS):
+    for id in reversed(reversed(IDS)):
         data, vocabulary = read_char_data(
             "data/" + id + ".txt", seq_length=SEQ_LENGTH)
         train(data, vocabulary, b_path='data/models/', rec_model=REC_MODEL,
