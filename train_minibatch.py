@@ -190,13 +190,15 @@ def trainAll():
 
 
 def predict(model, txt):
+    with open(model, 'rb') as f:
+        _ , vocabulary, _ = pkl.load(f)
+    data, vocabulary = read_char_data(txt, seq_length=SEQ_LENGTH, vocabulary=vocabulary)
     model, _, vocabulary, voc, cost, _, _ = build_model(
         dataset, vocabulary, model, batch_size, use_existing_model, REC_MODEL, N_H, OPTIMIZER, LEARNING_RATE)
-    data, vocabulary = read_char_data(txt, seq_length=SEQ_LENGTH, vocabulary=vocabulary)
     cost = 0.
     for i in range(n_train_batches):
         cost += train_model(i)
-    print('Cost: %f' % cost)
+    print('Cost: %f' % cost/n_train_batches)
 
 
 if __name__ == '__main__':

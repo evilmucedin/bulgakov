@@ -42,12 +42,12 @@ def read_word_data(f_name, seq_length):
     return [(x, y), (voc, ix_to_words, words_to_ix)]
 
 
-def read_char_data(f_name, seq_length):
+def read_char_data(f_name, seq_length, vocabulary):
     data = open(f_name, 'r', encoding='utf-8').read()
-    voc = list(set(data))
+    voc = list(set(data)) if not vocabulary else vocabulary[0]
     print('data size: %i, vocab size: %i' % (len(data), len(voc)))
-    chars_to_ix = {ch: i for i, ch in enumerate(voc)}
-    ix_to_chars = {i: ch for i, ch in enumerate(voc)}
+    chars_to_ix = {ch: i for i, ch in enumerate(voc)} if not vocabulary else vocabulary[2]
+    ix_to_chars = {i: ch for i, ch in enumerate(voc)} if not vocabulary else vocabulary[1]
     x_ = [chars_to_ix[ch] for ch in data]
     y_ = x_[1:] + x_[:1]
     x = []
