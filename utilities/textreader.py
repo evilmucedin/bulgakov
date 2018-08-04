@@ -26,6 +26,7 @@ def get_one_hot_vocab_list(vocab, vocab_size):
 def read_word_data(f_name, seq_length):
     data = tokenize(open(f_name, 'r', encoding='utf-8').read())
     voc = list(set(data))
+    voc = sorted(voc)
     print('data size: %i, vocab size: %i' % (len(data), len(voc)))
     words_to_ix = {wd: i for i, wd in enumerate(voc)}
     ix_to_words = {i: wd for i, wd in enumerate(voc)}
@@ -45,6 +46,7 @@ def read_word_data(f_name, seq_length):
 def read_char_data(f_name, seq_length, vocabulary=None):
     data = open(f_name, 'r', encoding='utf-8').read()
     voc = list(set(data)) if not vocabulary else vocabulary[0]
+    voc = sorted(voc)
     print('data size: %i, vocab size: %i' % (len(data), len(voc)))
     chars_to_ix = {ch: i for i, ch in enumerate(voc)} if not vocabulary else vocabulary[2]
     ix_to_chars = {i: ch for i, ch in enumerate(voc)} if not vocabulary else vocabulary[1]
