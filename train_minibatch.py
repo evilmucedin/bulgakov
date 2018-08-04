@@ -41,7 +41,7 @@ BATCH_SIZE = 100
 REC_MODEL = 'gru'
 N_H = 256
 OPTIMIZER = 'rmsprop'
-LEARNING_RATE = 0.001
+LEARNING_RATE = 0.0002
 
 
 def build_model(dataset, vocabulary, m_path, batch_size, use_existing_model, rec_model, n_h, optimizer, learning_rate):
