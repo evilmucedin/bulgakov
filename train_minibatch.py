@@ -43,6 +43,7 @@ N_H = 256
 OPTIMIZER = 'rmsprop'
 LEARNING_RATE = 0.001
 
+
 def build_model(dataset, vocabulary, m_path, batch_size, use_existing_model, rec_model, n_h, optimizer, learning_rate):
     vocab, ix_to_words, words_to_ix = vocabulary
     vocab_enc = [words_to_ix[wd] for wd in vocab]
@@ -191,14 +192,15 @@ def trainAll():
 
 def predict(model, txt):
     with open(model, 'rb') as f:
-        _ , vocabulary, _ = pkl.load(f)
-    data, vocabulary = read_char_data(txt, seq_length=SEQ_LENGTH, vocabulary=vocabulary)
-    model, _, vocabulary, voc, cost, _, _ = build_model(
-        dataset, vocabulary, model, batch_size, use_existing_model, REC_MODEL, N_H, OPTIMIZER, LEARNING_RATE)
+        _, vocabulary, _ = pkl.load(f)
+    dataset, vocabulary = read_char_data(
+        txt, seq_length=SEQ_LENGTH, vocabulary=vocabulary)
+    model, train_model, vocabulary, voc, cost, n_train_batches = build_model(
+        dataset, vocabulary, model, BATCH_SIZE, True, REC_MODEL, N_H, OPTIMIZER, LEARNING_RATE)
     cost = 0.
     for i in range(n_train_batches):
         cost += train_model(i)
-    print('Cost: %f' % cost/n_train_batches)
+    print('Cost: %f' % (cost / n_train_batches))
 
 
 if __name__ == '__main__':

@@ -48,7 +48,7 @@ def read_char_data(f_name, seq_length, vocabulary):
     print('data size: %i, vocab size: %i' % (len(data), len(voc)))
     chars_to_ix = {ch: i for i, ch in enumerate(voc)} if not vocabulary else vocabulary[2]
     ix_to_chars = {i: ch for i, ch in enumerate(voc)} if not vocabulary else vocabulary[1]
-    x_ = [chars_to_ix[ch] for ch in data]
+    x_ = [chars_to_ix[ch] if ch in chars_to_ix else 0 for ch in data]
     y_ = x_[1:] + x_[:1]
     x = []
     y = []
