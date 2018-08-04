@@ -163,6 +163,7 @@ def train(dataset, vocabulary, b_path, rec_model='gru',
 
             # save the current best model
             if train_cost < best_train_error:
+                print("save new best model %f" % (best_train_error - train_cost))
                 best_train_error = train_cost
                 with open(m_path, 'wb') as f:
                     pkl.dump((model.params, vocabulary, voc),
