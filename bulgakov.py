@@ -135,8 +135,7 @@ def train(dataset, vocabulary, b_path, rec_model='gru',
     ###############
     # TRAIN MODEL #
     ###############
-    print('model -- %s' % rec_model)
-    print('... training')
+    print('model -- %s training' % rec_model)
     logging_freq = 5
     sampling_freq = 10  # sampling is computationally expensive, therefore, need to be adjusted
     epoch = 0
@@ -157,6 +156,11 @@ def train(dataset, vocabulary, b_path, rec_model='gru',
             iter_start_time = timeit.default_timer()
             train_cost += train_model(i)
 
+        if epoch % logging_freq == 0:
+            iter_end_time = timeit.default_timer()
+            print('epoch: %i/%i, cost: %0.8f, sample: %.4fm' %
+                  (epoch, n_epochs, train_cost / index, (iter_end_time - iter_start_time) / 60.))
+
             # save the current best model
             if train_cost < best_train_error:
                 best_train_error = train_cost
@@ -164,10 +168,6 @@ def train(dataset, vocabulary, b_path, rec_model='gru',
                     pkl.dump((model.params, vocabulary, voc),
                              f, pkl.HIGHEST_PROTOCOL)
 
-        if epoch % logging_freq == 0:
-            iter_end_time = timeit.default_timer()
-            print('epoch: %i/%i, cost: %0.8f, sample: %.4fm' %
-                  (epoch, n_epochs, train_cost / index, (iter_end_time - iter_start_time) / 60.))
             train_cost = 0.
             index = 0
 
@@ -195,7 +195,9 @@ def train(dataset, vocabulary, b_path, rec_model='gru',
 
 
 def trainAll():
-    for id in reversed(list(reversed(IDS))):
+    modelIds = IDS[:]
+    shuffle(modelIds)
+    for id in modelIds:
         data, vocabulary = read_char_data(
             "data/" + id + ".txt", seq_length=SEQ_LENGTH)
         train(data, vocabulary, b_path='data/models/', rec_model=REC_MODEL,
@@ -209,7 +211,7 @@ def predict(model, txt):
         _, vocabulary, _ = pkl.load(f)
     dataset, vocabulary = read_char_data(
         txt, seq_length=SEQ_LENGTH, vocabulary=vocabulary)
-    model, train_model, voc, eval_model, n_train_batches = build_model(
+    model, _, _, eval_model, n_train_batches = build_model(
         dataset, vocabulary, model, BATCH_SIZE, True, REC_MODEL, N_H, OPTIMIZER, LEARNING_RATE)
     cost = 0.
     for i in range(n_train_batches):
