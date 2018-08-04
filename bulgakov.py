@@ -65,12 +65,13 @@ def build_model(dataset, vocabulary, m_path, batch_size, use_existing_model, rec
     rec_params = None
     if use_existing_model:
         if rec_model == 'birnn' or rec_model == 'bigru' or rec_model == 'bilstm':
-            print('Loading parameters for bidirectional models is not supported')
-            raise NotImplementedError
+            raise NotImplementedError(
+                'Loading parameters for bidirectional models is not supported')
         else:
             if os.path.isfile(m_path):
                 with open(m_path, 'rb') as f:
-                    rec_params, _, _ = pkl.load(f)
+                    rec_params, lvocabulary, lvoc = pkl.load(f)
+                    assert(lvocabulary == vocabulary)
             else:
                 print(
                     'Unable to load existing model %s, initializing model with random weights' % m_path)
@@ -94,9 +95,8 @@ def build_model(dataset, vocabulary, m_path, batch_size, use_existing_model, rec
         model = BiLstm(input=x, input_dim=n_x, hidden_dim=n_h, output_dim=n_y,
                        params=rec_params, mini_batch=True)
     else:
-        print('Only supported options for recurrent models are:\n'
-              'rnn, gru, lstm, birnn, bigru, bilstm')
-        raise NotImplementedError
+        raise NotImplementedError('Only supported options for recurrent models are:\n'
+                                  'rnn, gru, lstm, birnn, bigru, bilstm')
 
     cost = model.cross_entropy(y)
     updates = get_optimizer(optimizer, cost, model.params, learning_rate)
@@ -118,7 +118,7 @@ def build_model(dataset, vocabulary, m_path, batch_size, use_existing_model, rec
         }
     )
 
-    return model, train_model, vocabulary, voc, eval_model, n_train_batches
+    return model, train_model, voc, eval_model, n_train_batches
 
 
 def train(dataset, vocabulary, b_path, rec_model='gru',
@@ -128,7 +128,7 @@ def train(dataset, vocabulary, b_path, rec_model='gru',
     print('train(..)')
     m_path = b_path + rec_model + '-best_model_' + \
         str(batch_size) + "-" + id + '.pkl'
-    model, train_model, vocabulary, voc, _, n_train_batches = build_model(
+    model, train_model, voc, _, n_train_batches = build_model(
         dataset, vocabulary, m_path, batch_size, use_existing_model, rec_model, n_h, optimizer, learning_rate)
     vocab, ix_to_words, words_to_ix = vocabulary
 
@@ -137,7 +137,7 @@ def train(dataset, vocabulary, b_path, rec_model='gru',
     ###############
     print('model -- %s' % rec_model)
     print('... training')
-    logging_freq = batch_size / 10
+    logging_freq = 5
     sampling_freq = 10  # sampling is computationally expensive, therefore, need to be adjusted
     epoch = 0
     epochs = []  # for plotting stuff
@@ -145,9 +145,11 @@ def train(dataset, vocabulary, b_path, rec_model='gru',
     best_train_error = np.inf
     start_time = timeit.default_timer()
     done_looping = False
+    train_cost = 0.
+    index = 0
     while (epoch < n_epochs) and (not done_looping):
         epoch += 1
-        train_cost = 0.
+        index += 1
         indices = list(range(n_train_batches))
         shuffle(indices)
 
@@ -162,17 +164,18 @@ def train(dataset, vocabulary, b_path, rec_model='gru',
                     pkl.dump((model.params, vocabulary, voc),
                              f, pkl.HIGHEST_PROTOCOL)
 
-            if i % logging_freq == 0:
-                iter_end_time = timeit.default_timer()
-                print('epoch: %i/%i, minibatch: %i/%i, cost: %0.8f, /sample: %.4fm' %
-                      (epoch, n_epochs, i, n_train_batches, train_cost / (i + 1),
-                       (iter_end_time - iter_start_time) / 60.))
+        if epoch % logging_freq == 0:
+            iter_end_time = timeit.default_timer()
+            print('epoch: %i/%i, cost: %0.8f, sample: %.4fm' %
+                  (epoch, n_epochs, train_cost / index, (iter_end_time - iter_start_time) / 60.))
+            train_cost = 0.
+            index = 0
 
         # sample from the model now and then
         if epoch % sampling_freq == 0:
             seed = randint(0, len(vocab) - 1)
             idxes = model.generative_sampling(
-                seed, emb_data=voc, sample_length=sample_length)
+                seed, emb_data=voc, sample_length=2*sample_length)
             sample = ''.join(ix_to_words[ix] for ix in idxes)
             print(sample)
 
@@ -206,7 +209,7 @@ def predict(model, txt):
         _, vocabulary, _ = pkl.load(f)
     dataset, vocabulary = read_char_data(
         txt, seq_length=SEQ_LENGTH, vocabulary=vocabulary)
-    model, train_model, vocabulary, voc, eval_model, n_train_batches = build_model(
+    model, train_model, voc, eval_model, n_train_batches = build_model(
         dataset, vocabulary, model, BATCH_SIZE, True, REC_MODEL, N_H, OPTIMIZER, LEARNING_RATE)
     cost = 0.
     for i in range(n_train_batches):
