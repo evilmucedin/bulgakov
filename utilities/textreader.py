@@ -42,7 +42,7 @@ def read_word_data(f_name, seq_length):
     return [(x, y), (voc, ix_to_words, words_to_ix)]
 
 
-def read_char_data(f_name, seq_length, vocabulary):
+def read_char_data(f_name, seq_length, vocabulary=None):
     data = open(f_name, 'r', encoding='utf-8').read()
     voc = list(set(data)) if not vocabulary else vocabulary[0]
     print('data size: %i, vocab size: %i' % (len(data), len(voc)))

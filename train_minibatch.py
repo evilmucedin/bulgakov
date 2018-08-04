@@ -2,7 +2,7 @@
 
 import argparse
 
-from random import randint
+from random import randint, shuffle
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -140,7 +140,10 @@ def train(dataset, vocabulary, b_path, rec_model='gru',
     while (epoch < n_epochs) and (not done_looping):
         epoch += 1
         train_cost = 0.
-        for i in range(n_train_batches):
+        indices = list(range(n_train_batches))
+        shuffle(indices)
+
+        for i in indices:
             iter_start_time = timeit.default_timer()
             train_cost += train_model(i)
 
