@@ -30,6 +30,7 @@ IDS = [
     "beg",
     "garin",
     "gvardiya",
+    "golova",
     "master",
     "nerv",
     "staruha",
