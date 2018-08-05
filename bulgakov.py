@@ -221,8 +221,13 @@ def predict(model, txt):
     cost = 0.
     for i in range(n_train_batches):
         cost += eval_model(i)
-    print('Cost: %f' % (cost / n_train_batches))
+    print('Cost: %f for %s %s' % (cost / n_train_batches, model, txt))
 
+
+def predictAll():
+    for idModel in IDS:
+        for idText in IDS:
+            predict("data/models/gru-best_model_100-%s.pkl" % idModel, "data/%s.txt" % idText)
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(
@@ -237,3 +242,5 @@ if __name__ == '__main__':
         predict(args.model, args.txt)
     elif args.mode == "train":
         trainAll(args.id, args.lr)
+    elif args.mode == "predictAll":
+        predictAll()
