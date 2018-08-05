@@ -196,15 +196,18 @@ def train(dataset, vocabulary, b_path, rec_model='gru',
     plt.close()
 
 
-def trainAll():
-    modelIds = IDS[:]
+def trainAll(id, learning_rate):
+    if not id or len(id) == 0:
+        modelIds = IDS[:]
+    else:
+        modelIds = [id]
     shuffle(modelIds)
     for id in modelIds:
         data, vocabulary = read_char_data(
             "data/" + id + ".txt", seq_length=SEQ_LENGTH)
         train(data, vocabulary, b_path='data/models/', rec_model=REC_MODEL,
               n_h=N_H, optimizer='rmsprop', use_existing_model=True,
-              n_epochs=600, batch_size=BATCH_SIZE, id=id)
+              n_epochs=600, batch_size=BATCH_SIZE, id=id, learning_rate=learning_rate)
         print('... done')
 
 
@@ -227,8 +230,10 @@ if __name__ == '__main__':
     parser.add_argument('-mode', type=str)
     parser.add_argument('-model', type=str, default="")
     parser.add_argument('-txt', type=str, default="")
+    parser.add_argument('-id', type=str, default="")
+    parser.add_argument('-lr', type=float, default=LEARNING_RATE)
     args = parser.parse_args()
     if args.mode == "predict":
         predict(args.model, args.txt)
     elif args.mode == "train":
-        trainAll()
+        trainAll(args.id, args.lr)
