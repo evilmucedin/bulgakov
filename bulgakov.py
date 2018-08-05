@@ -9,6 +9,7 @@ import matplotlib.pyplot as plt
 import pickle as pkl
 import timeit
 import os.path
+import gc
 
 import theano
 import theano.tensor as T
@@ -18,7 +19,7 @@ from model.gru import Gru, BiGru
 from model.lstm import Lstm, BiLstm
 
 from utilities.optimizers import get_optimizer
-from utilities.loaddata import load_data
+from utilities.loaddata import load_data, unload_data
 from utilities.textreader import read_word_data, read_char_data
 
 __author__ = 'evilmucedin'
@@ -110,16 +111,17 @@ def build_model(dataset, vocabulary, m_path, batch_size, use_existing_model, rec
         },
         updates=updates
     )
+    cost_sum = model.cross_entropy_sum(y)
     eval_model = theano.function(
         inputs=[index],
-        outputs=cost,
+        outputs=cost_sum,
         givens={
             x: train_set_x[index * batch_size: (index + 1) * batch_size],
             y: train_set_y[index * batch_size: (index + 1) * batch_size]
         }
     )
 
-    return model, train_model, voc, eval_model, n_train_batches
+    return model, train_model, voc, eval_model, n_train_batches, train_set_x, train_set_y
 
 
 def train(dataset, vocabulary, b_path, rec_model='gru',
@@ -129,7 +131,7 @@ def train(dataset, vocabulary, b_path, rec_model='gru',
     print('train(..)')
     m_path = b_path + rec_model + '-best_model_' + \
         str(batch_size) + "-" + id + '.pkl'
-    model, train_model, voc, _, n_train_batches = build_model(
+    model, train_model, voc, _, n_train_batches, train_set_x, train_set_y,  = build_model(
         dataset, vocabulary, m_path, batch_size, use_existing_model, rec_model, n_h, optimizer, learning_rate)
     vocab, ix_to_words, words_to_ix = vocabulary
 
@@ -164,7 +166,8 @@ def train(dataset, vocabulary, b_path, rec_model='gru',
 
             # save the current best model
             if train_cost < best_train_error:
-                print("save new best model %f" % (best_train_error - train_cost))
+                print("save new best model %f" %
+                      (best_train_error - train_cost))
                 best_train_error = train_cost
                 with open(m_path, 'wb') as f:
                     pkl.dump((model.params, vocabulary, voc),
@@ -177,7 +180,7 @@ def train(dataset, vocabulary, b_path, rec_model='gru',
         if epoch % sampling_freq == 0:
             seed = randint(0, len(vocab) - 1)
             idxes = model.generative_sampling(
-                seed, emb_data=voc, sample_length=2*sample_length)
+                seed, emb_data=voc, sample_length=2 * sample_length)
             sample = ''.join(ix_to_words[ix] for ix in idxes)
             print(sample)
 
@@ -195,6 +198,8 @@ def train(dataset, vocabulary, b_path, rec_model='gru',
     # plt.show()
     plt.close()
 
+    unload_data(train_set_x, train_set_y, voc)
+
 
 def trainAll(id, learning_rate):
     if not id or len(id) == 0:
@@ -209,6 +214,7 @@ def trainAll(id, learning_rate):
               n_h=N_H, optimizer='rmsprop', use_existing_model=True,
               n_epochs=600, batch_size=BATCH_SIZE, id=id, learning_rate=learning_rate)
         print('... done')
+        gc.collect()
 
 
 def predict(model, txt):
@@ -216,18 +222,22 @@ def predict(model, txt):
         _, vocabulary, _ = pkl.load(f)
     dataset, vocabulary = read_char_data(
         txt, seq_length=SEQ_LENGTH, vocabulary=vocabulary)
-    model, _, _, eval_model, n_train_batches = build_model(
+    _, _, voc, eval_model, n_train_batches, train_set_x, train_set_y = build_model(
         dataset, vocabulary, model, BATCH_SIZE, True, REC_MODEL, N_H, OPTIMIZER, LEARNING_RATE)
     cost = 0.
     for i in range(n_train_batches):
         cost += eval_model(i)
-    print('Cost: %f for %s %s' % (cost / n_train_batches, model, txt))
+    print('Cost: %f for %s %s' % (cost / len(dataset[0]), model, txt))
+    unload_data(train_set_x, train_set_y, voc)
 
 
 def predictAll():
     for idModel in IDS:
         for idText in IDS:
-            predict("data/models/gru-best_model_100-%s.pkl" % idModel, "data/%s.txt" % idText)
+            predict("data/models/gru-best_model_100-%s.pkl" %
+                    idModel, "data/%s.txt" % idText)
+            gc.collect()
+
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(
@@ -242,5 +252,7 @@ if __name__ == '__main__':
         predict(args.model, args.txt)
     elif args.mode == "train":
         trainAll(args.id, args.lr)
-    elif args.mode == "predictAll":
+    elif args.mode == "predictall":
         predictAll()
+    else:
+        raise Exception("unknown mode")

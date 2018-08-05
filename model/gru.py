@@ -116,6 +116,12 @@ class Gru(object):
         else:
             return T.sum(T.nnet.categorical_crossentropy(self.y_t, y))
 
+    def cross_entropy_sum(self, y):
+        if self.mini_batch:
+            return T.sum(T.sum(T.nnet.categorical_crossentropy(self.y_t, y), axis=1))  # naive batch-normalization
+        else:
+            return T.sum(T.nnet.categorical_crossentropy(self.y_t, y))
+
     def negative_log_likelihood(self, y):
         return -T.mean(T.log(self.y_t)[:, y])
 
