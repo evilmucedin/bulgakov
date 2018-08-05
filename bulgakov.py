@@ -158,8 +158,8 @@ def train(dataset, vocabulary, b_path, rec_model='gru',
 
         if epoch % logging_freq == 0:
             iter_end_time = timeit.default_timer()
-            print('epoch: %i/%i, cost: %0.8f, sample: %.4fm' %
-                  (epoch, n_epochs, train_cost / index, (iter_end_time - iter_start_time) / 60.))
+            print('%s epoch: %i/%i, cost: %0.8f, sample: %.4fm' %
+                  (id, epoch, n_epochs, train_cost / index, (iter_end_time - iter_start_time) / 60.))
 
             # save the current best model
             if train_cost < best_train_error:
