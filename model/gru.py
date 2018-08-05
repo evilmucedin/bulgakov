@@ -110,6 +110,15 @@ class Gru(object):
             )
             self.y = T.argmax(self.y_t, axis=1)
 
+    def unload(self):
+        for x in self.params:
+            if x.ndim == 3:
+                x.set_value([[[]]])
+            elif x.ndim == 2:
+                x.set_value([[]])
+            elif x.ndim == 1:
+                x.set_value([])
+
     def cross_entropy(self, y):
         if self.mini_batch:
             return T.mean(T.sum(T.nnet.categorical_crossentropy(self.y_t, y), axis=1))  # naive batch-normalization

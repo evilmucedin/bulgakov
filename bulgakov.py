@@ -121,7 +121,7 @@ def build_model(dataset, vocabulary, m_path, batch_size, use_existing_model, rec
         }
     )
 
-    return model, train_model, voc, eval_model, n_train_batches, train_set_x, train_set_y
+    return model, train_model, voc, eval_model, n_train_batches, train_set_x, train_set_y, rec_params
 
 
 def train(dataset, vocabulary, b_path, rec_model='gru',
@@ -131,7 +131,7 @@ def train(dataset, vocabulary, b_path, rec_model='gru',
     print('train(..)')
     m_path = b_path + rec_model + '-best_model_' + \
         str(batch_size) + "-" + id + '.pkl'
-    model, train_model, voc, _, n_train_batches, train_set_x, train_set_y,  = build_model(
+    model, train_model, voc, _, n_train_batches, train_set_x, train_set_y, _  = build_model(
         dataset, vocabulary, m_path, batch_size, use_existing_model, rec_model, n_h, optimizer, learning_rate)
     vocab, ix_to_words, words_to_ix = vocabulary
 
@@ -199,6 +199,7 @@ def train(dataset, vocabulary, b_path, rec_model='gru',
     plt.close()
 
     unload_data(train_set_x, train_set_y, voc)
+    model.unload()
 
 
 def trainAll(id, learning_rate):
@@ -222,13 +223,14 @@ def predict(model, txt):
         _, vocabulary, _ = pkl.load(f)
     dataset, vocabulary = read_char_data(
         txt, seq_length=SEQ_LENGTH, vocabulary=vocabulary)
-    _, _, voc, eval_model, n_train_batches, train_set_x, train_set_y = build_model(
+    lmodel, _, voc, eval_model, n_train_batches, train_set_x, train_set_y, rec_params  = build_model(
         dataset, vocabulary, model, BATCH_SIZE, True, REC_MODEL, N_H, OPTIMIZER, LEARNING_RATE)
     cost = 0.
     for i in range(n_train_batches):
         cost += eval_model(i)
     print('Cost: %f for %s %s' % (cost / len(dataset[0]), model, txt))
     unload_data(train_set_x, train_set_y, voc)
+    lmodel.unload()
 
 
 def predictAll():
